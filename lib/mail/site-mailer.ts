@@ -16,6 +16,7 @@ const num = (k: string, d: number) => {
   return Number.isFinite(n) && n > 0 ? n : d;
 };
 const log = (...a: unknown[]) => console.log("[site-mail]", ...a);
+const LOG_BODY_MAX = 300;
 let warnedNotConfigured = false;
 
 const configured: Record<string, () => boolean> = {
@@ -38,7 +39,8 @@ async function sendHttp(name: string, url: string, headers: Record<string, strin
       signal: AbortSignal.timeout(15_000),
     });
     if (r.ok) return "sent";
-    log(name, "status", r.status);
+    const body = await r.text().catch(() => "");
+    log(name, "status", r.status, body.replace(/\s+/g, " ").slice(0, LOG_BODY_MAX));
     return "retry";
   } catch {
     log(name, "network error");

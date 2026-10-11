@@ -14,7 +14,7 @@ function mailFailure(r: SiteMailResult) {
   if (r.ok) return null;
   if (r.reason === "not_configured") return fail("Email confirmation isn't configured", 503);
   if (r.reason === "rate_limited") return fail("Too many emails right now, try again in a few minutes", 429);
-  return fail("We couldn't send the email, please try Resend in a minute", 502);
+  return fail("We couldn't send the email, please try again in a minute", 502);
 }
 
 export async function POST(req: Request) {

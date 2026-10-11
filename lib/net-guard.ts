@@ -28,6 +28,13 @@ export async function assertSafeTarget(host: string, port: number, kind: "smtp" 
   if (ips.some(isPrivateIp)) throw new Error("Private or loopback hosts are not allowed");
 }
 
+const isGoogleHost = (h?: string | null) => /(^|\.)(gmail|googlemail)\.com$/i.test((h ?? "").trim());
+
+/** Google shows app passwords with spaces; strip whitespace only for Gmail hosts. */
+export function normalizePassword(password: string, imapHost?: string | null, smtpHost?: string | null): string {
+  return isGoogleHost(imapHost) || isGoogleHost(smtpHost) ? password.replace(/\s+/g, "") : password;
+}
+
 /** Server error text without secrets. */
 export function errText(e: unknown): string {
   if (e instanceof Error) {

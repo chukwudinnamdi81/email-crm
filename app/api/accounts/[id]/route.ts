@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { authed, body, HttpError, json } from "@/lib/api";
 import { encrypt } from "@/lib/crypto";
-import { assertSafeTarget } from "@/lib/net-guard";
+import { assertSafeTarget, normalizePassword } from "@/lib/net-guard";
 import { testAccount } from "@/lib/mail/test-connection";
 import { publicAccount } from "@/lib/serialize";
 
@@ -39,7 +39,7 @@ export const PATCH = authed<{ id: string }>(async (req, user, { id }) => {
     data: {
       ...d,
       ...(defaultSmtpSenderId !== undefined ? { defaultSmtpSenderId } : {}),
-      ...(password ? { passwordEnc: encrypt(password) } : {}),
+      ...(password ? { passwordEnc: encrypt(normalizePassword(password, d.imapHost ?? existing.imapHost, d.smtpHost ?? existing.smtpHost)) } : {}),
       ...(disconnect ? { status: "disconnected" } : {}),
     },
   });

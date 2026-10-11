@@ -2,7 +2,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { authed, body, json } from "@/lib/api";
 import { encrypt } from "@/lib/crypto";
-import { assertSafeTarget } from "@/lib/net-guard";
+import { assertSafeTarget, normalizePassword } from "@/lib/net-guard";
 import { testAccount } from "@/lib/mail/test-connection";
 import { publicAccount } from "@/lib/serialize";
 
@@ -25,7 +25,7 @@ export const POST = authed(async (req, user) => {
   await assertSafeTarget(d.imapHost, d.imapPort, "imap").catch((e) => { throw new Error(`IMAP: ${e.message}`); });
   await assertSafeTarget(d.smtpHost, d.smtpPort, "smtp").catch((e) => { throw new Error(`SMTP: ${e.message}`); });
   const { password, ...rest } = d;
-  const acc = await db.mailAccount.create({ data: { ...rest, userId: user.id, method: "MANUAL", passwordEnc: encrypt(password) } });
+  const acc = await db.mailAccount.create({ data: { ...rest, userId: user.id, method: "MANUAL", passwordEnc: encrypt(normalizePassword(password, d.imapHost, d.smtpHost)) } });
   const t = await testAccount(acc);
   const updated = await db.mailAccount.update({
     where: { id: acc.id },

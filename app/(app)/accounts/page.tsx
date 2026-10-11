@@ -15,6 +15,11 @@ export default function Accounts() {
   const load = async () => { setList((await api<Acc[]>("/api/accounts")).data as unknown as Acc[]); setSenders((await api<Sender[]>("/api/senders")).data as unknown as Sender[]); };
   useEffect(() => { load(); }, []);
   const set = (k: string, v: string | number) => setF({ ...f, [k]: v });
+  const setEmail = (v: string) => {
+    const gmail = /@(gmail|googlemail)\.com$/i.test(v.trim());
+    if (gmail && !f.imapHost && !f.smtpHost) setF({ ...f, email: v, imapHost: "imap.gmail.com", imapPort: 993, imapSecurity: "SSL", smtpHost: "smtp.gmail.com", smtpPort: 465, smtpSecurity: "SSL", username: f.username || v.trim() });
+    else set("email", v);
+  };
 
   async function save() {
     setMsg({ ok: true, text: "Testing connection…" });
@@ -38,7 +43,7 @@ export default function Accounts() {
         <h3>{editing ? "Edit account" : "Add account (manual IMAP + SMTP)"}</h3>
         <div className="grid">
           <input placeholder="Label" value={f.label} onChange={(e) => set("label", e.target.value)} />
-          <input placeholder="Email" value={f.email} onChange={(e) => set("email", e.target.value)} />
+          <input placeholder="Email" value={f.email} onChange={(e) => setEmail(e.target.value)} />
           <input placeholder="Username" value={f.username} onChange={(e) => set("username", e.target.value)} />
           <input type="password" placeholder={editing ? "Password (leave blank to keep)" : "Password / app password"} value={f.password} onChange={(e) => set("password", e.target.value)} />
           <input placeholder="IMAP host" value={f.imapHost} onChange={(e) => set("imapHost", e.target.value)} />
@@ -48,6 +53,7 @@ export default function Accounts() {
           <input type="number" placeholder="SMTP port" value={f.smtpPort} onChange={(e) => set("smtpPort", Number(e.target.value))} />
           <select value={f.smtpSecurity} onChange={(e) => set("smtpSecurity", e.target.value)}><option>SSL</option><option>STARTTLS</option></select>
         </div>
+        <p className="text-sm text-muted">Gmail: use a 16-character App Password (needs 2-Step Verification) and make sure IMAP is enabled in Gmail settings.</p>
         {msg && <p className={msg.ok ? "callout-info" : "callout-danger"} role="status">{msg.text}</p>}
         <div className="row"><button onClick={save}>{editing ? "Save & test" : "Add & test"}</button>{editing && <button className="sec" onClick={() => { setEditing(null); setF(blank); }}>Cancel</button>}</div>
       </div>

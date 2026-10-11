@@ -52,7 +52,7 @@ export async function imapFor(a: MailAccount): Promise<ImapFlow> {
   const security = a.imapSecurity ?? o?.imap.security ?? "SSL";
   return new ImapFlow({
     host, port, secure: security === "SSL", doSTARTTLS: security === "STARTTLS" ? true : undefined,
-    auth: await auth(a), logger: false, socketTimeout: 120_000,
+    auth: await auth(a), logger: false, connectionTimeout: 20_000, greetingTimeout: 20_000, socketTimeout: 120_000,
   });
 }
 

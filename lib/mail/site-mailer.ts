@@ -16,6 +16,7 @@ const num = (k: string, d: number) => {
   return Number.isFinite(n) && n > 0 ? n : d;
 };
 const log = (...a: unknown[]) => console.log("[site-mail]", ...a);
+let warnedNotConfigured = false;
 
 const configured: Record<string, () => boolean> = {
   resend: () => !!env("SITE_RESEND_API_KEY"),
@@ -101,7 +102,13 @@ export async function sendSiteEmail(input: Msg & { kind: SiteMailKind }): Promis
   try {
     const list = providers();
     if (!list.length || !env("SITE_MAIL_FROM")) {
-      if (process.env.NODE_ENV === "production") return { ok: false, reason: "not_configured" };
+      if (process.env.NODE_ENV === "production") {
+        if (!warnedNotConfigured) {
+          warnedNotConfigured = true;
+          log("not configured: set SITE_MAIL_FROM and one of SITE_RESEND_API_KEY / SITE_POSTMARK_TOKEN / SITE_SMTP_HOST");
+        }
+        return { ok: false, reason: "not_configured" };
+      }
       // DEV-ONLY fallback: prints the body (contains the code / link)
       console.log(`[site-mail:dev] to=${input.to} subject=${input.subject}\n${input.text}`);
       return { ok: true, provider: "console" };

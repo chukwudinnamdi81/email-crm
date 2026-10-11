@@ -35,6 +35,14 @@ Health check: `GET /api/health` (checks Postgres and Redis).
 
 Required env: `DATABASE_URL`, `REDIS_URL`, `ENCRYPTION_KEY`, `SIGNING_SECRET`, `APP_URL`. See `.env.example` for the rest.
 
+### Deploying on Railway
+
+- Web service: `SERVICE=web`; worker service: `SERVICE=worker`.
+- `DATABASE_URL` and `REDIS_URL`: reference them from the Postgres and Redis plugins (an unset `REDIS_URL` falls back to localhost and logs a warning).
+- `APP_URL`: the public `https://` URL of the web service.
+- Site email: `SITE_MAIL_PROVIDERS=resend`, `SITE_RESEND_API_KEY`, and `SITE_MAIL_FROM` on a domain verified in Resend. Outbound SMTP may be blocked on Railway, so prefer Resend/Postmark.
+- Check `/api/health` after deploy, and look for a `[config]` warning in the web logs listing anything missing.
+
 **Port 25 warning:** email verification (SMTP handshake) needs outbound port 25, which Railway/Render/Fly commonly block. The Contacts page shows a warning when the worker's self-test fails.
 
 ## Security notes

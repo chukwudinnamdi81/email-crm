@@ -20,7 +20,7 @@ function mailFailure(r: SiteMailResult) {
 export async function POST(req: Request) {
   if (!signupsEnabled()) return fail("Sign-ups are currently closed", 403);
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "local";
-  if (!(await rateLimit(`signup:${ip}`, 10, 3600))) return fail("Too many attempts", 429);
+  if (!(await rateLimit(`signup:${ip}`, 10, 3600, { failOpen: true }))) return fail("Too many attempts", 429);
   const parsed = schema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return fail("Valid email and a password of 8+ characters are required");
   const { email, password } = parsed.data;

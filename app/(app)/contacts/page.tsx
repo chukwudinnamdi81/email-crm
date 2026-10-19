@@ -78,7 +78,7 @@ export default function Contacts() {
         ))}</tbody>
       </table></div>
       {!loaded && <div className="space-y-2" aria-busy="true"><div className="skeleton h-8" /><div className="skeleton h-8" /></div>}
-      {loaded && rows.length === 0 && <div className="empty-state"><b className="block text-fg">No contacts yet</b>Contacts appear here once a mail account has synced, or adjust your filters. <a href="/accounts">Connect a mail account</a>.</div>}
+      {loaded && rows.length === 0 && <div className="empty-state"><b className="block text-fg">No contacts yet</b>Contacts appear here once a mail account has synced, or adjust your filters. {accs.length === 0 ? <a href="/accounts">Connect a mail account</a> : <a href="/sync">Check sync progress</a>}.</div>}
       <div className="row mt-3"><button className="sec" disabled={page <= 1} onClick={() => setPage(page - 1)}>Prev</button><span className="text-sm text-muted">Page {page}</span><button className="sec" disabled={page * 50 >= total} onClick={() => setPage(page + 1)}>Next</button></div>
     </>
   );

@@ -92,6 +92,7 @@ model MailAccount {
   lastSyncAt     DateTime?
   defaultSmtpSenderId String?
   autoDraft      Boolean  @default(false)
+  syncWindowDays Int?     // null = sync everything; set to 30 for new accounts
   createdAt      DateTime @default(now())
 
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -143,6 +144,9 @@ model Folder {
   fetched     Int      @default(0)
   done        Boolean  @default(false)
   backfilled  Boolean  @default(false)
+  backfillBelow Int?   // null = no downward backfill pending; N = UIDs < N not yet downloaded
+  runTotal    Int      @default(0) // messages this run must handle in this folder
+  runDone     Int      @default(0)
   account     MailAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
   messages    Message[]
 
@@ -225,6 +229,12 @@ model SyncJob {
   foldersDone  Int   @default(0)
   messagesFetched Int @default(0)
   contactsFound Int  @default(0)
+  messagesTotal Int  @default(0)
+  messagesProcessed Int @default(0)
+  scanDoneAt DateTime?
+  yieldedAt DateTime?
+  sliceStartedAt DateTime?
+  activeMs  Int      @default(0)
   currentFolder String?
   error     String?
   startedAt DateTime?

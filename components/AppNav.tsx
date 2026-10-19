@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import LogoutButton from "./LogoutButton";
 import ThemeToggle from "./ThemeToggle";
+import SyncStatusPill from "./SyncStatusPill";
 
 const ICONS = {
   home: "M3 11 12 3l9 8M5 10v10h14V10",
@@ -62,6 +63,7 @@ function Panel({ email, path }: { email: string; path: string }) {
         ))}
       </nav>
       <div className="space-y-3 border-t border-line p-4">
+        <SyncStatusPill />
         <div className="truncate text-sm text-muted" title={email}>{email}</div>
         <div className="flex flex-wrap items-center gap-2"><LogoutButton /><ThemeToggle /></div>
         <div className="flex gap-3 text-xs"><a href="/">Home page</a><a href="/privacy">Privacy</a><a href="/terms">Terms</a></div>
@@ -88,6 +90,7 @@ export default function AppNav({ email }: { email: string }) {
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-line bg-surface lg:block"><Panel email={email} path={path} /></aside>
       <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-surface px-4 py-2.5 lg:hidden">
         <Brand />
+        <SyncStatusPill compact />
         <button type="button" className="btn btn-secondary !px-2.5" aria-label="Open menu" aria-expanded={open} aria-controls="app-drawer" onClick={() => setOpen(true)}>
           <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
         </button>

@@ -69,3 +69,13 @@ Add the entry to `lib/storage-registry.ts` first; the privacy page updates itsel
 4. Log in as yourself to confirm you were grandfathered.
 5. Fill the `LEGAL_*` variables and have the privacy and terms pages reviewed by a lawyer.
 6. Emergency brakes: `SIGNUPS_ENABLED=false` and `STORAGE_CHECK=warn` (lets a hotfix build pass with a loud banner; never the default).
+
+## Sync tuning
+
+- `SYNC_CONCURRENCY` (default 3): jobs the worker runs at once. `SYNC_INTERVAL_MINUTES` (default 10): scheduled incremental sync.
+- `SYNC_PER_USER_CONCURRENCY` (default 2): mailboxes of one user syncing at once (Redis lease; a crashed worker frees its slot within 2 minutes).
+- `SYNC_SLICE_SECONDS` (default 240): a long backfill pauses after this long, only when other jobs are waiting, and resumes where it stopped.
+- `SYNC_MAX_FULL_SYNC_MESSAGES` (default 0 = off): refuse a first sync of everything for a mailbox larger than this.
+- The worker writes a `worker:heartbeat` Redis key every 15s; `/api/health` and the Sync page use it to tell whether the worker is running.
+- Schema changes in this release (new columns on MailAccount, Folder, SyncJob) are applied with `npm run prisma:migrate` (`prisma db push`).
+- `npm test` runs the unit tests.

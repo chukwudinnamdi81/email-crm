@@ -9,6 +9,7 @@
     "start": "next start -H 0.0.0.0 -p ${PORT:-3000}",
     "worker": "tsx worker/index.ts",
     "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
     "prisma:migrate": "prisma db push --skip-generate",
     "db:push": "prisma db push",
     "db:backfill": "tsx scripts/backfill-email-verified.ts",

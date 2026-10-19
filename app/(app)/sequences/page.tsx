@@ -16,6 +16,7 @@ export default function Sequences() {
       <div className="info">{HINT_COPY.coldEmailLaw}</div>
       <div className="row"><input placeholder="New sequence name" value={name} onChange={(e) => setName(e.target.value)} />
         <button onClick={async () => { const r = await api<{ id: string }>("/api/sequences", "POST", { name: name || "Untitled sequence", steps: [{ subject: "Hello {{firstName|there}}", bodyHtml: "<p>Hi {{firstName|there}},</p><p></p>", delayDays: 0, delayHours: 0, sameThread: false }] }); if (r.ok) window.location.href = `/sequences/${r.data.id}`; }}>New sequence</button></div>
+      {list.length === 0 && <p className="callout-info">No sequences yet. Make sure you have <a href="/contacts">contacts to email</a> (connect and sync a <a href="/accounts">mail account</a> first), then create your first sequence above.</p>}
       <table style={{ marginTop: 10 }}>
         <thead><tr><th>Name</th><th>Status</th><th>Steps</th><th>Enrolled</th><th>Active</th><th>Replied</th><th>Bounced</th><th>Unsub</th><th></th></tr></thead>
         <tbody>{list.map((s) => (

@@ -7,7 +7,7 @@ export function publicAccount(a: MailAccount) {
     smtpHost: a.smtpHost, smtpPort: a.smtpPort, smtpSecurity: a.smtpSecurity,
     username: a.username, hasPassword: !!a.passwordEnc, passwordMasked: a.passwordEnc ? "••••••••" : null,
     status: a.status, lastError: a.lastError, lastTestedAt: a.lastTestedAt, lastSyncAt: a.lastSyncAt,
-    defaultSmtpSenderId: a.defaultSmtpSenderId, autoDraft: a.autoDraft,
+    defaultSmtpSenderId: a.defaultSmtpSenderId, autoDraft: a.autoDraft, syncWindowDays: a.syncWindowDays,
   };
 }
 

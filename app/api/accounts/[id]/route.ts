@@ -3,8 +3,10 @@ import { db } from "@/lib/db";
 import { authed, body, HttpError, json } from "@/lib/api";
 import { encrypt } from "@/lib/crypto";
 import { assertSafeTarget, normalizePassword } from "@/lib/net-guard";
-import { testAccount } from "@/lib/mail/test-connection";
+import { testAccount, testOutcome } from "@/lib/mail/test-connection";
 import { publicAccount } from "@/lib/serialize";
+import { startSync } from "@/lib/queues";
+import { isWidening, widenBackfillBelow, windowSchema } from "@/lib/sync-window";
 
 const patch = z.object({
   label: z.string().min(1).max(80).optional(),
@@ -17,6 +19,7 @@ const patch = z.object({
   defaultSmtpSenderId: z.string().nullable().optional(),
   disconnect: z.boolean().optional(),
   retest: z.boolean().optional(),
+  syncWindowDays: windowSchema.optional(),
 });
 
 async function own(userId: string, id: string) {
@@ -48,9 +51,20 @@ export const PATCH = authed<{ id: string }>(async (req, user, { id }) => {
     const t = await testAccount(acc);
     acc = await db.mailAccount.update({
       where: { id },
-      data: { status: t.ok ? "connected" : "error", lastError: t.ok ? null : [t.imap, t.smtp].filter((x) => x !== "OK").join(" | "), lastTestedAt: new Date() },
+      data: testOutcome(t),
     });
   }
+  const kick = () => startSync(id, { source: "manual" }).catch((e) => console.error("[accounts] could not start sync:", e instanceof Error ? e.message : "unknown"));
+  if (d.syncWindowDays !== undefined && isWidening(existing.syncWindowDays, d.syncWindowDays) && !disconnect) {
+    // resume backfilling below what is already stored, using the wider window
+    const mins = await db.message.groupBy({ by: ["folderId"], where: { accountId: id }, _min: { uid: true } });
+    const minBy = new Map(mins.map((m) => [m.folderId, m._min.uid]));
+    for (const f of await db.folder.findMany({ where: { accountId: id } })) {
+      const below = widenBackfillBelow({ existingBelow: f.backfillBelow, minStoredUid: minBy.get(f.id) ?? null, lastUid: f.lastUid });
+      if (below != null) await db.folder.update({ where: { id: f.id }, data: { backfillBelow: below } });
+    }
+    await kick();
+  } else if (connChanged && !disconnect && acc.status === "connected") await kick();
   return json(publicAccount(acc));
 });
 

@@ -59,6 +59,13 @@ export default function Contacts() {
         <button className="sec" disabled={!sel.size} onClick={() => verify(false)}>Verify selected ({sel.size})</button>
         <button className="sec" onClick={() => verify(true)}>Verify all (filtered)</button>
         <a href={`/api/contacts/export?${filterQs()}${sel.size ? `&ids=${[...sel].join(",")}` : ""}`}><button className="sec">Export CSV</button></a>
+        <button className="sec" onClick={async () => {
+          if (!confirm("Rebuild contacts from your synced mail? Counts and names are recomputed; contacts that are in a sequence, verified or unsubscribed are never deleted.")) return;
+          setNote("Rebuilding contacts…");
+          const r = await api<{ updated: number; created: number; removed: number }>("/api/contacts/rebuild", "POST", {});
+          setNote(r.ok ? `Rebuilt: ${r.data.updated} updated, ${r.data.created} added, ${r.data.removed} removed.` : r.data.error ?? "Rebuild failed");
+          load();
+        }}>Rebuild from synced mail</button>
         <select disabled={!sel.size} value="" onChange={(e) => e.target.value && addToSeq(e.target.value)}><option value="">Add to sequence…</option>{seqs.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</select>
       </div>
       {note && <p className="callout-info" role="status">{note}</p>}

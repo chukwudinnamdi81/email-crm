@@ -22,7 +22,7 @@ export type TrackerEntry = {
 };
 
 /** Manual field: update when you last re-checked this list. */
-export const STORAGE_REGISTRY_REVIEWED = "2026-10-10";
+export const STORAGE_REGISTRY_REVIEWED = "2026-10-19";
 
 export const STORAGE_ENTRIES: StorageEntry[] = [
   {
@@ -52,6 +52,15 @@ export const STORAGE_ENTRIES: StorageEntry[] = [
     essential: true,
     setIn: "components/ThemeToggle.tsx",
     condition: "Only written when you pick a theme.",
+  },
+  {
+    kind: "localStorage",
+    name: "onboarding:dismissed",
+    purpose: "Remembers that you dismissed the 'Get started' checklist on the dashboard so it stays hidden. Never sent to our server.",
+    duration: "Until you clear your browser data",
+    essential: true,
+    setIn: "app/(app)/dashboard/page.tsx",
+    condition: "Only written when you click 'Dismiss' on the Get started checklist.",
   },
 ];
 

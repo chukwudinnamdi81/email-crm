@@ -42,3 +42,38 @@ export async function startSync(accountId: string, opts: { source?: SyncSource }
   );
   return row;
 }
+
+const log = (...a: unknown[]) => console.warn("[queues]", ...a);
+
+async function removeJobs(name: string, ids: string[]) {
+  const q = queue(name);
+  for (const id of ids) {
+    try {
+      await (await q.getJob(id))?.remove();
+    } catch {
+      log("could not remove job (active or Redis unavailable):", name); // a running job fails on its own once the rows are gone
+    }
+  }
+}
+
+/** Removes queued/delayed sync jobs (`sync-<syncJobId>`) for these accounts so the worker never runs against a deleted row. */
+export async function cancelAccountJobs(accountIds: string[]) {
+  const rows = await db.syncJob.findMany({ where: { accountId: { in: accountIds }, status: { in: ["queued", "running"] } }, select: { id: true } });
+  await removeJobs(QUEUES.sync, rows.map((r) => `sync-${r.id}`));
+}
+
+/** Removes queued sync jobs for all of a user's accounts and pending send jobs for all of a user's sequences. */
+export async function cancelUserJobs(userId: string) {
+  const accounts = await db.mailAccount.findMany({ where: { userId }, select: { id: true } });
+  await cancelAccountJobs(accounts.map((a) => a.id));
+  let cursor: string | undefined;
+  for (;;) {
+    const rows = await db.sequenceEnrollment.findMany({
+      where: { status: "active", sequence: { userId } }, select: { id: true, currentStep: true },
+      orderBy: { id: "asc" }, take: 1000, ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+    });
+    if (!rows.length) break;
+    cursor = rows[rows.length - 1].id;
+    await removeJobs(QUEUES.sequences, rows.map((e) => `send-${e.id}-${e.currentStep}`));
+  }
+}

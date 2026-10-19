@@ -5,7 +5,7 @@ import { encrypt } from "@/lib/crypto";
 import { assertSafeTarget, normalizePassword } from "@/lib/net-guard";
 import { testAccount, testOutcome } from "@/lib/mail/test-connection";
 import { publicAccount } from "@/lib/serialize";
-import { startSync } from "@/lib/queues";
+import { cancelAccountJobs, startSync } from "@/lib/queues";
 import { isWidening, widenBackfillBelow, windowSchema } from "@/lib/sync-window";
 
 const patch = z.object({
@@ -70,6 +70,8 @@ export const PATCH = authed<{ id: string }>(async (req, user, { id }) => {
 
 export const DELETE = authed<{ id: string }>(async (_req, user, { id }) => {
   await own(user.id, id);
-  await db.mailAccount.delete({ where: { id } }); // secrets live on the row
+  await cancelAccountJobs([id]);
+  await db.mailAccount.deleteMany({ where: { id, userId: user.id } }); // secrets live on the row; messages, folders, sync jobs and contact sources cascade
+  console.log(`[audit] mail account deleted user=${user.id}`);
   return json({ ok: true });
 });

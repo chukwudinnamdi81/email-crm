@@ -78,11 +78,11 @@ export default function Privacy() {
       </section>
       <section id="rights">
         <h2>Your rights and deleting data</h2>
-        <p>You can ask us to access, correct or delete your data. The app has no self-service account deletion yet, so please contact us at {contactText()} to request it.</p>
+        <p>You can ask us to access, correct or delete your data. You can download your data and delete synced mail or your whole account yourself under Settings &rarr; Account &amp; data; for anything else, contact us at {contactText()}.</p>
       </section>
       <section id="retention">
         <h2>Retention</h2>
-        <p>Your data is kept until you delete it or ask us to delete it. Accounts that never confirm their email address are removed automatically after a few days.</p>
+        <p>Your data is kept until you delete it or ask us to delete it. When you delete your account, your data is deleted immediately from our database; copies in backups age out according to our backup policy. Accounts that never confirm their email address are removed automatically after a few days.</p>
       </section>
       <section id="children"><h2>Children</h2><p>The service is not intended for children under 16.</p></section>
       <section id="changes"><h2>Changes</h2><p>We may update this policy; the date above shows the latest version.</p></section>

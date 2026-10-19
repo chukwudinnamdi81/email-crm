@@ -45,3 +45,25 @@ export function accountExists({ loginUrl, resetUrl }: { loginUrl: string; resetU
     ),
   };
 }
+
+export function deleteAccountCode(code: string): Mail {
+  return {
+    subject: `Your Mail CRM account deletion code: ${code}`,
+    text: `Use this code to confirm deleting your Mail CRM account and all its data: ${code}\n\nIt expires in 15 minutes.\nNever share this code with anyone.\n\nIf you didn't request this, you can ignore this email and your account stays as it is.`,
+    html: wrap(
+      `<p>Use this code to confirm deleting your Mail CRM account and all its data:</p><p style="font-family:ui-monospace,Menlo,Consolas,monospace;font-size:32px;letter-spacing:6px;font-weight:700;margin:12px 0">${esc(code)}</p>` +
+        `<p>It expires in 15 minutes. Never share this code with anyone.</p><p>If you didn't request this, you can ignore this email and your account stays as it is.</p>`,
+    ),
+  };
+}
+
+export function accountDeleted(): Mail {
+  return {
+    subject: "Your Mail CRM account was deleted",
+    text: "Your Mail CRM account and all the data in it (synced mail, contacts, sequences and connected mailbox credentials) were deleted. Mail on your own mail servers was not touched.\n\nBackups age out per our backup policy. If this wasn't you, contact us right away.",
+    html: wrap(
+      `<p>Your Mail CRM account and all the data in it (synced mail, contacts, sequences and connected mailbox credentials) were deleted. Mail on your own mail servers was not touched.</p>` +
+        `<p>Backups age out per our backup policy. If this wasn't you, contact us right away.</p>`,
+    ),
+  };
+}

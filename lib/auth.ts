@@ -52,17 +52,36 @@ export async function currentUser(): Promise<SessionUser | null> {
 const CODE_TTL_MS = 15 * 60_000;
 const RESET_TTL_MS = 60 * 60_000;
 export const MAX_CODE_ATTEMPTS = 5;
+type CodePurpose = "EMAIL_VERIFY" | "ACCOUNT_DELETE";
 
 const codeHash = (userId: string, code: string) => hmacHex(`${userId}:${code}`);
 
 /** Creates a 6-digit email confirmation code (older unused ones are invalidated). The raw code is only for the email. */
-export async function createEmailCode(userId: string): Promise<string> {
+export async function createEmailCode(userId: string, purpose: CodePurpose = "EMAIL_VERIFY"): Promise<string> {
   const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
   await db.$transaction([
-    db.authToken.updateMany({ where: { userId, purpose: "EMAIL_VERIFY", usedAt: null }, data: { usedAt: new Date() } }),
-    db.authToken.create({ data: { userId, purpose: "EMAIL_VERIFY", tokenHash: codeHash(userId, code), expiresAt: new Date(Date.now() + CODE_TTL_MS) } }),
+    db.authToken.updateMany({ where: { userId, purpose, usedAt: null }, data: { usedAt: new Date() } }),
+    db.authToken.create({ data: { userId, purpose, tokenHash: codeHash(userId, code), expiresAt: new Date(Date.now() + CODE_TTL_MS) } }),
   ]);
   return code;
+}
+
+/** Consumes a fresh code for a signed-in user (e.g. confirming account deletion). Same attempt limit as sign-up codes. */
+export async function checkUserCode(userId: string, code: string, purpose: CodePurpose): Promise<boolean> {
+  const token = await db.authToken.findFirst({
+    where: { userId, purpose, usedAt: null, expiresAt: { gt: new Date() } },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!token) return false;
+  if (token.attempts >= MAX_CODE_ATTEMPTS) return false;
+  const a = Buffer.from(codeHash(userId, code));
+  const b = Buffer.from(token.tokenHash);
+  if (a.length !== b.length || !timingSafeEqual(a, b)) {
+    await db.authToken.update({ where: { id: token.id }, data: { attempts: { increment: 1 } } });
+    return false;
+  }
+  const used = await db.authToken.updateMany({ where: { id: token.id, usedAt: null }, data: { usedAt: new Date() } });
+  return used.count === 1;
 }
 
 /** Returns the user id when the code matches, otherwise null (same result for every failure). */

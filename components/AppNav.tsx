@@ -24,7 +24,7 @@ const SECTIONS: { title: string; items: [string, string, Icon][] }[] = [
   { title: "Mail", items: [["/mail", "Mail", "mail"], ["/contacts", "Contacts", "users"]] },
   { title: "Outreach", items: [["/sequences", "Sequences", "send"], ["/auto-responders", "Auto-responders", "reply"]] },
   { title: "Connections", items: [["/accounts", "Mail accounts", "plug"], ["/senders", "SMTP senders", "server"], ["/sync", "Sync", "sync"]] },
-  { title: "Settings", items: [["/settings/ai", "AI settings", "spark"], ["/settings/profile", "Business profile", "brief"]] },
+  { title: "Settings", items: [["/settings/ai", "AI settings", "spark"], ["/settings/profile", "Business profile", "brief"], ["/settings/account", "Account & data", "brief"]] },
 ];
 
 const Svg = ({ d }: { d: string }) => (
